@@ -2,13 +2,13 @@
 <style>
 :root{--bg:#0a0a14;--card:#12121e;--border:#2a2a3a;--text:#d0d0d0;--accent:#5b9eff;--green:#1a7a3a;--red:#8B0000}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
-.container{width:100%;max-width:min(600px,95vw)}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:clamp(12px,3vw,24px)}
+.container{width:100%;max-width:900px;margin:0 auto}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .header h1{color:var(--accent);font-size:clamp(1.3em,4vw,2em)}
 .lang-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:8px;cursor:pointer;font-size:14px;text-decoration:none;font-weight:bold}
 .sub{text-align:center;color:#888;margin-bottom:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,3vw,28px);margin-bottom:14px}
 .card h3{margin-bottom:10px;font-size:clamp(0.9em,2vw,1em)}
 input{display:block;width:100%;padding:clamp(10px,2vw,12px);margin:4px 0;border-radius:10px;font-size:clamp(13px,2vw,14px);font-family:inherit;background:#0a0a14;border:1px solid var(--border);color:var(--text)}
 input:focus{outline:none;border-color:var(--accent)}
@@ -19,7 +19,7 @@ input:focus{outline:none;border-color:var(--accent)}
 .file-list div{padding:2px 0;border-bottom:1px solid #111}
 /* شريط الأدوات الموحد - أسفل */
 .toolbar{display:flex;gap:10px;margin-top:16px}
-.toolbar button{flex:1;padding:14px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;border:none;font-family:inherit;transition:.2s}
+.toolbar button{flex:1;padding:clamp(12px,2vw,16px);border-radius:10px;font-size:clamp(14px,2vw,16px);font-weight:bold;cursor:pointer;border:none;font-family:inherit;transition:.2s}
 .btn-analyze{background:var(--green);color:#fff}
 .btn-analyze:hover{background:#219a4a}
 .btn-analyze:disabled{background:#333;cursor:not-allowed}
@@ -32,7 +32,7 @@ input:focus{outline:none;border-color:var(--accent)}
 #progress-text{color:#aaa;font-size:13px}
 .error{color:#f66;font-size:13px;text-align:center;margin:6px 0;display:none}
 input[type=file]{display:none}
-@media(max-width:768px){body{padding:10px}.container{max-width:100%}.toolbar button{padding:10px;font-size:12px}}
+@media(max-width:768px){body{padding:8px}.container{max-width:100%}}
 @media(max-width:480px){body{padding:6px}.header h1{font-size:1.3em}.toolbar{gap:4px}.toolbar button{padding:8px 10px;font-size:11px}.card{padding:10px}}
 </style>
 </head>
