@@ -182,6 +182,11 @@ def load_html(n):
 app=FastAPI(title="CGPS v8")
 UPLOADS=BASE/"uploads";UPLOADS.mkdir(exist_ok=True)
 
+@app.get("/logo",response_class=HTMLResponse)
+async def logo():
+    with open(BASE/"logo.html","r",encoding="utf-8") as f:
+        return f.read()
+
 @app.get("/",response_class=HTMLResponse)
 async def home():return load_html('home.html')
 

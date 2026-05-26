@@ -55,6 +55,20 @@ body{font-family:system-ui,sans-serif;background:#060610;color:#e0e0e0;overflow:
 </head>
 <body>
 
+<div style="position:fixed;bottom:50%;right:50%;transform:translate(50%,50%);opacity:0.03;pointer-events:none;z-index:0">
+  <svg width="300" height="300" viewBox="0 0 400 400">
+    <circle cx="200" cy="170" r="110" fill="none" stroke="#5b9eff" stroke-width="5"/>
+    <polygon points="200,60 182,170 200,170" fill="#5b9eff"/>
+    <polygon points="200,280 218,170 200,170" fill="#5b9eff"/>
+    <circle cx="130" cy="110" r="18" fill="#5b9eff"/>
+    <circle cx="280" cy="95" r="24" fill="#5b9eff"/>
+    <circle cx="290" cy="220" r="14" fill="#5b9eff"/>
+    <circle cx="110" cy="240" r="22" fill="#5b9eff"/>
+    <text x="200" y="345" text-anchor="middle" fill="#5b9eff" font-size="38" font-weight="bold">CGPS</text>
+  </svg>
+</div>
+
+
 <div class="toolbar">
 <button onclick="cy.fit(50)">🔍</button>
 <button onclick="cy.zoom(cy.zoom()*1.4)">➕</button>
