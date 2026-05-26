@@ -247,6 +247,11 @@ async def api_progress(sid:str):
     if sid in _clone_status:return {"stage":"cloning","percent":30,"message":"جاري استنساخ المستودع..."}
     return {"stage":"processing","percent":50,"message":"جاري تحليل الملفات..."}
 
+
+@app.get("/api/health")
+async def health():
+    return {"status":"ok"}
+
 if __name__=="__main__":
     print("🧭 CGPS v8 → http://localhost:8000")
     uvicorn.run(app,host="0.0.0.0",port=8000,log_level="warning")
