@@ -56,29 +56,29 @@ input[type=file]{display:none}
 
 <!-- رفع ملفات -->
 <div class="card">
-<h3>📤 رفع الملفات</h3>
-<div class="upload-zone" id="uz"><p style="font-size:28px">📁</p><p id="uzText">اضغط لاختيار ملفات</p></div>
+<h3 id="uploadTitle">📤 Upload Files</h3>
+<div class="upload-zone" id="uz"><p style="font-size:28px">📁</p><p id="uzText">Click to select files</p></div>
 <input type="file" id="fi" multiple>
 <div class="file-list" id="fl"></div>
 </div>
 
 <!-- مسار محلي -->
 <div class="card">
-<h3>📂 مسار محلي</h3>
+<h3 id="pathTitle">📂 Local Path</h3>
 <input type="text" id="lp" placeholder="/data/data/com.termux/files/home/CGPS">
 </div>
 
 <!-- GitHub -->
 <div class="card">
-<h3>🐙 GitHub</h3>
+<h3 id="githubTitle">🐙 GitHub</h3>
 <input type="text" id="gu" placeholder="https://github.com/user/repo">
-<input type="password" id="gt" placeholder="Token (اختياري)">
+<input type="password" id="gt" placeholder="Token (optional)">
 </div>
 
 <!-- شريط الأدوات الموحد -->
 <div class="toolbar">
-<button class="btn-analyze" id="btnAnalyze" onclick="startAnalysis()">🚀 تحليل</button>
-<button class="btn-clear" onclick="clearAll()">🔄 تنظيف</button>
+<button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">🚀 تحليل</button>
+<button class="btn-clear" onclick="clearAll()">🔄 Clear</button>
 </div>
 
 <!-- Progress -->
@@ -183,6 +183,63 @@ if(p.stage==='error'){clearInterval(iv);showError(p.message||'Error')}
 }
 </script>
 
+
+
+<script>
+(function() {
+  var D = {
+    ar: {
+      subtitle: 'خريطة ذهنية لمشروعك البرمجي',
+      uploadTitle: '📤 رفع الملفات',
+      pathTitle: '📂 مسار محلي',
+      githubTitle: '🐙 GitHub',
+      uz: 'اضغط لاختيار ملفات',
+      analyze: '🚀 تحليل',
+      clear: '🔄 تنظيف',
+      progress: 'جاري التحليل',
+      done: '✅ اكتمل',
+      langBtn: '🇬🇧 English'
+    },
+    en: {
+      subtitle: 'Code Mind Map',
+      uploadTitle: '📤 Upload Files',
+      pathTitle: '📂 Local Path',
+      githubTitle: '🐙 GitHub',
+      uz: 'Click to select files',
+      analyze: '🚀 Analyze',
+      clear: '🔄 Clear',
+      progress: 'Analyzing',
+      done: '✅ Complete',
+      langBtn: '🇸🇦 العربية'
+    }
+  };
+  
+  var lang = (new URLSearchParams(window.location.search)).get('lang') || 'ar';
+  var t = D[lang];
+  
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  
+  function set(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  
+  set('subtitle', t.subtitle);
+  set('uploadTitle', t.uploadTitle);
+  set('pathTitle', t.pathTitle);
+  set('githubTitle', t.githubTitle);
+  set('uzText', t.uz);
+  set('analyzeBtn', t.analyze);
+  set('clearBtn', t.clear);
+  
+  var lb = document.getElementById('langBtn');
+  if (lb) {
+    lb.textContent = t.langBtn;
+    lb.href = '?lang=' + (lang === 'ar' ? 'en' : 'ar');
+  }
+})();
+</script>
 
 </body>
 </html>
