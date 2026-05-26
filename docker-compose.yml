@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+cgps:
+build: .
+ports:
+- "8000:8000"
+volumes:
+- ./uploads:/app/uploads
+- cgps_data:/app/data
+restart: unless-stopped
+
+volumes:
+cgps_data:

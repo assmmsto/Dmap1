@@ -1,0 +1,6 @@
+cgps.db
+uploads/
+pycache/
+*.pyc
+.env
+*.log
