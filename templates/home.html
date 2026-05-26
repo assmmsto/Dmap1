@@ -39,15 +39,19 @@ input[type=file]{display:none}
 <body>
 <div class="container">
 <div class="header">
-<div style="display:flex;align-items:center;gap:10px">
-<svg width="40" height="40" viewBox="0 0 400 400" style="flex-shrink:0">
-  <circle cx="200" cy="170" r="110" fill="none" stroke="#5b9eff" stroke-width="8"/>
-  <polygon points="200,60 180,170 200,170" fill="#DC143C"/>
-  <polygon points="200,280 220,170 200,170" fill="#5b9eff"/>
-  <circle cx="200" cy="170" r="10" fill="#fff"/>
-</svg>
-<h1>CGPS</h1>
-</div><a href="?lang=en" class="lang-btn" id="langBtn">🇬🇧 English</a></div>
+<h1><svg style="vertical-align:middle;border-radius:10px;margin-right:8px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="65" height="65">
+  <rect width="65" height="65" fill="#0a0a14" rx="20"/>
+  <circle cx="200" cy="170" r="110" fill="none" stroke="#5b9eff" stroke-width="5"/>
+  <polygon points="200,60 182,170 200,170" fill="#DC143C" opacity="0.9"/>
+  <polygon points="200,280 218,170 200,170" fill="#5b9eff" opacity="0.9"/>
+  <circle cx="200" cy="170" r="14" fill="#fff"/>
+  <circle cx="200" cy="170" r="8" fill="#5b9eff"/>
+  <circle cx="130" cy="110" r="18" fill="#228B22" opacity="0.9"/>
+  <circle cx="280" cy="95" r="24" fill="#FF8C00" opacity="0.9"/>
+  <circle cx="290" cy="220" r="14" fill="#FFD700" opacity="0.9"/>
+  <circle cx="110" cy="240" r="22" fill="#8B0000" opacity="0.9"/>
+  <text x="200" y="345" text-anchor="middle" fill="#5b9eff" font-family="Arial" font-size="38" font-weight="bold">CGPS</text>
+</svg>CGPS</h1><a href="?lang=en" class="lang-btn" id="langBtn">🇬🇧 English</a></div>
 <p class="sub" id="subtitle">خريطة ذهنية لمشروعك البرمجي</p>
 
 <!-- رفع ملفات -->
@@ -178,5 +182,7 @@ if(p.stage==='error'){clearInterval(iv);showError(p.message||'Error')}
 }).catch(function(e){showError(e.message)});
 }
 </script>
+
+
 </body>
 </html>
