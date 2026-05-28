@@ -1,6 +1,6 @@
 cgps.db
 uploads/
-pycache/
+__pycache__/
 *.pyc
 .env
 *.log

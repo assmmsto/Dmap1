@@ -1,245 +1,260 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>CGPS</title>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>D-Map</title>
 <style>
 :root{--bg:#0a0a14;--card:#12121e;--border:#2a2a3a;--text:#d0d0d0;--accent:#5b9eff;--green:#1a7a3a;--red:#8B0000}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:clamp(12px,3vw,24px)}
-.container{width:100%;max-width:900px;margin:0 auto}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.header h1{color:var(--accent);font-size:clamp(1.3em,4vw,2em)}
-.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:8px;cursor:pointer;font-size:14px;text-decoration:none;font-weight:bold}
-.sub{text-align:center;color:#888;margin-bottom:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,3vw,28px);margin-bottom:14px}
-.card h3{margin-bottom:10px;font-size:clamp(0.9em,2vw,1em)}
-input{display:block;width:100%;padding:clamp(10px,2vw,12px);margin:4px 0;border-radius:10px;font-size:clamp(13px,2vw,14px);font-family:inherit;background:#0a0a14;border:1px solid var(--border);color:var(--text)}
-input:focus{outline:none;border-color:var(--accent)}
-.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:24px;text-align:center;cursor:pointer;margin-bottom:4px;transition:.2s}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;font-size:17px}
+.container{max-width:700px;margin:0 auto}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.header h1{color:var(--accent);font-size:2.2em}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:18px;text-decoration:none}
+.badge-row{text-align:center;margin-bottom:16px}
+.badge{display:inline-block;background:var(--accent);color:#000;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:bold;margin:3px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+.card h3{margin-bottom:12px;color:var(--accent)}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;text-align:center;font-weight:bold;font-size:14px}
+.tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+input{width:100%;padding:14px;font-size:16px;margin:6px 0;border-radius:10px;background:#0a0a14;border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:14px}
+.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:30px;text-align:center;cursor:pointer;margin:8px 0}
 .upload-zone:hover{border-color:var(--accent)}
-.file-list{max-height:80px;overflow-y:auto;font-size:11px;color:#888;background:#0a0a14;border-radius:6px;padding:8px;margin:4px 0;display:none}
-.file-list.show{display:block}
-.file-list div{padding:2px 0;border-bottom:1px solid #111}
-/* شريط الأدوات الموحد - أسفل */
-.toolbar{display:flex;gap:10px;margin-top:16px}
-.toolbar button{flex:1;padding:clamp(12px,2vw,16px);border-radius:10px;font-size:clamp(14px,2vw,16px);font-weight:bold;cursor:pointer;border:none;font-family:inherit;transition:.2s}
+.btn{width:100%;padding:16px;border-radius:10px;font-size:18px;font-weight:bold;cursor:pointer;border:none;margin:4px 0}
 .btn-analyze{background:var(--green);color:#fff}
-.btn-analyze:hover{background:#219a4a}
 .btn-analyze:disabled{background:#333;cursor:not-allowed}
-.btn-clear{background:var(--red);color:#fff}
-.btn-clear:hover{background:#a01020}
-/* Progress */
-#progress{display:none;text-align:center;padding:12px;margin-top:8px}
-.progress-bar{width:100%;height:6px;background:#1a1a2a;border-radius:3px;overflow:hidden;margin:8px 0}
-.progress-fill{height:100%;background:var(--accent);border-radius:3px;width:0;transition:width .3s}
-#progress-text{color:#aaa;font-size:13px}
-.error{color:#f66;font-size:13px;text-align:center;margin:6px 0;display:none}
+#progress{display:none;text-align:center;padding:12px;margin:8px 0}
+.progress-bar{width:100%;height:8px;background:#1a1a2a;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);width:0;transition:width .3s;border-radius:4px}
+#stats{display:none;margin-top:12px;padding:12px;background:#0a0a14;border-radius:10px}
+.stat{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #111}
+.file-list{max-height:120px;overflow-y:auto;font-size:12px;color:#888;background:#0a0a14;border-radius:8px;padding:8px;margin:4px 0;display:none}
+.file-list.show{display:block}
 input[type=file]{display:none}
-@media(max-width:768px){body{padding:8px}.container{max-width:100%}}
-@media(max-width:480px){body{padding:6px}.header h1{font-size:1.3em}.toolbar{gap:4px}.toolbar button{padding:8px 10px;font-size:11px}.card{padding:10px}}
 </style>
 </head>
 <body>
 <div class="container">
+
 <div class="header">
-<h1><svg style="vertical-align:middle;border-radius:10px;margin-right:8px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="65" height="65">
-  <rect width="65" height="65" fill="#0a0a14" rx="20"/>
-  <circle cx="200" cy="170" r="110" fill="none" stroke="#5b9eff" stroke-width="5"/>
-  <polygon points="200,60 182,170 200,170" fill="#DC143C" opacity="0.9"/>
-  <polygon points="200,280 218,170 200,170" fill="#5b9eff" opacity="0.9"/>
-  <circle cx="200" cy="170" r="14" fill="#fff"/>
-  <circle cx="200" cy="170" r="8" fill="#5b9eff"/>
-  <circle cx="130" cy="110" r="18" fill="#228B22" opacity="0.9"/>
-  <circle cx="280" cy="95" r="24" fill="#FF8C00" opacity="0.9"/>
-  <circle cx="290" cy="220" r="14" fill="#FFD700" opacity="0.9"/>
-  <circle cx="110" cy="240" r="22" fill="#8B0000" opacity="0.9"/>
-  <text x="200" y="345" text-anchor="middle" fill="#5b9eff" font-family="Arial" font-size="38" font-weight="bold">CGPS</text>
-</svg>CGPS</h1><a href="?lang=en" class="lang-btn" id="langBtn">🇬🇧 English</a></div>
-<p class="sub" id="subtitle">خريطة ذهنية لمشروعك البرمجي</p>
+<h1><span style="color:#ff8c00">D</span><span style="color:#fff">-Map</span></h1>
+<a class="lang-btn" id="langBtn" href="#">🇸🇦</a>
+</div>
+<div class="badge-row">
+<span class="badge" data-tr="fast">⚡ سريع</span>
+<span class="badge" data-tr="ai">🧠 ذكي</span>
+<span class="badge" data-tr="secure">🔒 آمن</span>
+</div>
 
-<!-- رفع ملفات -->
+<div class="tabs">
+<button class="tab active" onclick="switchTab('upload')" data-tr="tab-upload">📤 رفع ملفات</button>
+<button class="tab" onclick="switchTab('path')" data-tr="tab-path">📂 مسار محلي</button>
+<button class="tab" onclick="switchTab('github')" data-tr="tab-github">GitHub</button>
+</div>
+
+<div class="tab-content active" id="tab-upload">
 <div class="card">
-<h3 id="uploadTitle">📤 Upload Files</h3>
-<div class="upload-zone" id="uz"><p style="font-size:28px">📁</p><p id="uzText">Click to select files</p></div>
-<input type="file" id="fi" multiple>
-<div class="file-list" id="fl"></div>
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<p style="font-size:32px">📁</p><p data-tr="drop-text">اضغط أو اسحب الملفات هنا</p>
+</div>
+<input type="file" id="fileInput" multiple>
+<div class="file-list" id="fileList"></div>
+</div>
 </div>
 
-<!-- مسار محلي -->
+<div class="tab-content" id="tab-path">
 <div class="card">
-<h3 id="pathTitle">📂 Local Path</h3>
-<input type="text" id="lp" placeholder="/data/data/com.termux/files/home/CGPS">
+<input type="text" id="pathInput" placeholder="/data/data/com.termux/files/home/CGPS">
+</div>
 </div>
 
-<!-- GitHub -->
+<div class="tab-content" id="tab-github">
 <div class="card">
-<h3 id="githubTitle">🐙 GitHub</h3>
-<input type="text" id="gu" placeholder="https://github.com/user/repo">
-<input type="password" id="gt" placeholder="Token (optional)">
+<h3><span data-tr="github-title">مستودع GitHub</span></h3>
+
+<label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;color:#aaa;font-size:13px">
+<span>🔗</span><span data-tr="github-url-label">رابط المستودع</span>
+</label>
+<input type="text" id="githubInput" data-tr-placeholder="github-placeholder" placeholder="">
+<small style="color:#666;font-size:11px;display:block;margin:2px 0 10px" data-tr="github-url-hint">يدعم: user/repo أو https://github.com/user/repo</small>
+
+<label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;color:#aaa;font-size:13px">
+<span>🔑</span><span data-tr="github-token-label">رمز الوصول</span>
+<span style="background:#FFD700;color:#000;font-size:10px;padding:2px 8px;border-radius:8px" data-tr="optional">اختياري</span>
+</label>
+<input type="text" id="tokenInput" data-tr-placeholder="token-placeholder" placeholder="">
+<small style="color:#666;font-size:11px;display:block;margin:2px 0" data-tr="token-hint"></small>
+</div>
 </div>
 
-<!-- شريط الأدوات الموحد -->
-<div class="toolbar">
-<button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">🚀 تحليل</button>
-<button class="btn-clear" onclick="clearAll()">🔄 Clear</button>
-</div>
+<button class="btn btn-analyze" id="analyzeBtn" onclick="startAnalysis()" data-tr="analyze">🚀 تحليل المشروع</button>
 
-<!-- Progress -->
 <div id="progress">
-<div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
-<p id="progress-text"></p>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<p id="progressText" style="color:#aaa;margin-top:6px"></p>
 </div>
-<div class="error" id="er"></div>
+
+<div id="stats"></div>
 </div>
 
 <script>
-var T={ar:{sub:'خريطة ذهنية لمشروعك البرمجي',uz:'اضغط لاختيار ملفات',progress:'جاري التحليل',done:'✅ اكتمل',errFile:'اختر ملفات',errPath:'أدخل مساراً',errGh:'أدخل رابط المستودع',langBtn:'🇬🇧 English'},en:{sub:'Code Mind Map',uz:'Click to select files',progress:'Analyzing',done:'✅ Complete',errFile:'Select files',errPath:'Enter path',errGh:'Enter repo URL',langBtn:'🇸🇦 العربية'}};
-var lang=(new URLSearchParams(window.location.search)).get('lang')||'ar';
-var t=T[lang];
-document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
-document.getElementById('langBtn').textContent=t.langBtn;
-document.getElementById('langBtn').href='?lang='+(lang==='ar'?'en':'ar');
-document.getElementById('subtitle').textContent=t.sub;
-document.getElementById('uzText').textContent=t.uz;
-
-var files=[],activeTab=null;
-
-// رفع الملفات
-document.getElementById('uz').onclick=function(){document.getElementById('fi').click()};
-document.getElementById('fi').onchange=function(e){
-files=Array.from(e.target.files);
-var fl=document.getElementById('fl');
-fl.innerHTML='';fl.classList.add('show');
-files.forEach(function(f){var d=document.createElement('div');d.textContent='📄 '+f.name;fl.appendChild(d)});
-activeTab='upload';
+// ============ الترجمة ============
+var T={
+ar:{fast:'⚡ سريع',ai:'🧠 ذكي',secure:'🔒 آمن','tab-upload':'📤 رفع ملفات','tab-path':'📂 مسار محلي','tab-github':'GitHub','drop-text':'اضغط أو اسحب الملفات هنا',analyze:'🚀 تحليل المشروع',analyzing:'⏳ جاري التحليل...',processing:'جاري المعالجة...',done:'✅ اكتمل',error:'خطأ',noFile:'اختر ملفات أولاً',noPath:'أدخل مساراً',noRepo:'أدخل رابط المستودع',stats:'📊 إحصائيات',files:'📁 الملفات',lines:'📝 الأسطر',critical:'🔴 حرج',high:'🟠 عالي',aiStatus:'🧠 ذكاء',cloneTime:'⏱️ استنساخ',viewMap:'🗺️ عرض الخريطة ←',langBtn:'🇬🇧 English',githubPlaceholder:'user/repo أو https://github.com/user/repo',
+'github-title':'مستودع GitHub','github-url-label':'رابط المستودع','github-url-hint':'يدعم: user/repo أو https://github.com/user/repo',
+'github-token-label':'رمز الوصول',optional:'اختياري'},
+en:{fast:'⚡ Fast',ai:'🧠 Smart',secure:'🔒 Secure','tab-upload':'📤 Upload Files','tab-path':'📂 Local Path','tab-github':'GitHub','drop-text':'Click or drop files here',analyze:'🚀 Analyze Project',analyzing:'⏳ Analyzing...',processing:'Processing...',done:'✅ Complete',error:'Error',noFile:'Select files first',noPath:'Enter a path',noRepo:'Enter repo URL',stats:'📊 Statistics',files:'📁 Files',lines:'📝 Lines',critical:'🔴 Critical',high:'🟠 High',aiStatus:'🧠 AI',cloneTime:'⏱️ Clone',viewMap:'🗺️ View Map ←',langBtn:'🇸🇦 العربية',tokenPlaceholder:'Token (optional)',tokenHint:'For private repos only',githubPlaceholder:'user/repo or https://github.com/user/repo',
+'github-title':'GitHub Repository','github-url-label':'Repository URL','github-url-hint':'Supports: user/repo or https://github.com/user/repo',
+'github-token-label':'Access Token',optional:'Optional'},
+en:{fast:'⚡ Fast',ai:'🧠 Smart',secure:'🔒 Secure','tab-upload':'📤 Upload Files','tab-path':'📂 Local Path','tab-github':'GitHub','drop-text':'Click or drop files here',analyze:'🚀 Analyze Project',analyzing:'⏳ Analyzing...',processing:'Processing...',done:'✅ Complete',error:'Error',noFile:'Select files first',noPath:'Enter a path',noRepo:'Enter repo URL',stats:'📊 Statistics',files:'📁 Files',lines:'📝 Lines',critical:'🔴 Critical',high:'🟠 High',aiStatus:'🧠 AI',cloneTime:'⏱️ Clone',viewMap:'🗺️ View Map ←',langBtn:'🇸🇦 العربية',tokenPlaceholder:'Token (optional)',tokenHint:'For private repos only',githubPlaceholder:'user/repo or https://github.com/user/repo',
+'github-title':'GitHub Repository','github-url-label':'Repository URL','github-url-hint':'Supports: user/repo or https://github.com/user/repo',
+'github-token-label':'Access Token',optional:'Optional'},
+en:{fast:'⚡ Fast',ai:'🧠 Smart',secure:'🔒 Secure','tab-upload':'📤 Upload Files','tab-path':'📂 Local Path','tab-github':'GitHub','drop-text':'Click or drop files here',analyze:'🚀 Analyze Project',analyzing:'⏳ Analyzing...',processing:'Processing...',done:'✅ Complete',error:'Error',noFile:'Select files first',noPath:'Enter a path',noRepo:'Enter repo URL',stats:'📊 Statistics',files:'📁 Files',lines:'📝 Lines',critical:'🔴 Critical',high:'🟠 High',aiStatus:'🧠 AI',cloneTime:'⏱️ Clone',viewMap:'🗺️ View Map ←',langBtn:'🇸🇦 العربية',tokenPlaceholder:'Token (optional)',tokenHint:'For private repos only',githubPlaceholder:'user/repo or https://github.com/user/repo',
+'github-title':'GitHub Repository','github-url-label':'Repository URL','github-url-hint':'Supports: user/repo or https://github.com/user/repo',
+'github-token-label':'Access Token',optional:'Optional'},
+en:{fast:'⚡ Fast',ai:'🧠 Smart',secure:'🔒 Secure','tab-upload':'📤 Upload Files','tab-path':'📂 Local Path','tab-github':'GitHub','drop-text':'Click or drop files here',analyze:'🚀 Analyze Project',analyzing:'⏳ Analyzing...',processing:'Processing...',done:'✅ Complete',error:'Error',noFile:'Select files first',noPath:'Enter a path',noRepo:'Enter repo URL',stats:'📊 Statistics',files:'📁 Files',lines:'📝 Lines',critical:'🔴 Critical',high:'🟠 High',aiStatus:'🧠 AI',cloneTime:'⏱️ Clone',viewMap:'🗺️ View Map ←',langBtn:'🇸🇦 العربية',tokenPlaceholder:'Token (optional)',tokenHint:'For private repos only',githubPlaceholder:'user/repo or https://github.com/user/repo',
+'github-title':'GitHub Repository','github-url-label':'Repository URL','github-url-hint':'Supports: user/repo or https://github.com/user/repo',
+'github-token-label':'Access Token',optional:'Optional'}
 };
 
-// تحديد التبويب النشط عند الضغط على أي حقل
-document.getElementById('lp').onfocus=function(){activeTab='path';files=[];document.getElementById('fl').classList.remove('show')};
-document.getElementById('gu').onfocus=function(){activeTab='github';files=[];document.getElementById('fl').classList.remove('show')};
-document.getElementById('gt').onfocus=function(){activeTab='github'};
+var lang=(new URLSearchParams(window.location.search)).get('lang')||'ar';
+var t=T[lang];
+document.documentElement.lang=lang;
+document.documentElement.dir=lang==='ar'?'rtl':'ltr';
 
-function clearAll(){
-files=[];
-document.getElementById('fi').value='';
-document.getElementById('lp').value='';
-document.getElementById('gu').value='';
-document.getElementById('gt').value='';
-document.getElementById('fl').classList.remove('show');
-document.getElementById('fl').innerHTML='';
-document.getElementById('progress').style.display='none';
-document.getElementById('er').style.display='none';
-document.getElementById('pf').style.width='0%';
-document.getElementById('progress-text').textContent='';
+// تطبيق الترجمة
+document.querySelectorAll('[data-tr]').forEach(function(el){
+el.textContent=t[el.getAttribute('data-tr')]||el.textContent;
+});
+document.querySelectorAll('[data-tr-placeholder]').forEach(function(el){
+el.placeholder=t[el.getAttribute('data-tr-placeholder')]||el.placeholder;
+});
+// تحديث عناصر data-tr التي لها محتوى افتراضي
+var hint=document.querySelector('[data-tr="token-hint"]');
+if(hint)hint.textContent=t.tokenHint||'';
+document.getElementById('langBtn').textContent=t.langBtn;
+document.getElementById('langBtn').href='?lang='+(lang==='ar'?'en':'ar');
+
+// ============ المنطق ============
+var activeTab='upload',selectedFiles=[];
+
+function switchTab(tab){
+activeTab=tab;
+document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('active')});
+document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
+document.querySelector('[onclick="switchTab(\''+tab+'\')"]').classList.add('active');
+document.getElementById('tab-'+tab).classList.add('active');
 }
 
-function showProgress(){document.getElementById('progress').style.display='block';document.getElementById('er').style.display='none'}
-function showError(m){document.getElementById('progress').style.display='none';document.getElementById('er').style.display='block';document.getElementById('er').textContent='❌ '+m}
+document.getElementById('fileInput').onchange=function(e){
+selectedFiles=Array.from(e.target.files);
+var list=document.getElementById('fileList');
+list.innerHTML=selectedFiles.map(function(f){return'📄 '+f.name}).join('<br>');
+list.classList.add('show');
+};
+
+var dz=document.getElementById('dropZone');
+dz.ondragover=function(e){e.preventDefault();dz.style.borderColor='#5b9eff'};
+dz.ondragleave=function(){dz.style.borderColor='#2a2a3a'};
+dz.ondrop=function(e){
+e.preventDefault();dz.style.borderColor='#2a2a3a';
+selectedFiles=Array.from(e.dataTransfer.files);
+var list=document.getElementById('fileList');
+list.innerHTML=selectedFiles.map(function(f){return'📄 '+f.name}).join('<br>');
+list.classList.add('show');
+};
 
 function startAnalysis(){
-var url,fd=new FormData();
+var formData=new FormData(),url='';
 
 if(activeTab==='upload'){
-if(!files.length){showError(t.errFile);return}
-files.forEach(function(f){fd.append('files',f,f.name)});
+if(!selectedFiles.length)return alert(t.noFile);
+selectedFiles.forEach(function(f){formData.append('files',f)});
 url='/api/upload';
 }else if(activeTab==='path'){
-var p=document.getElementById('lp').value.trim();
-if(!p){showError(t.errPath);return}
-fd.append('path',p);
+var path=document.getElementById('pathInput').value.trim();
+if(!path)return alert(t.noPath);
+formData.append('path',path);
 url='/api/analyze-path';
-}else if(activeTab==='github'){
-var u=document.getElementById('gu').value.trim();
-if(!u){showError(t.errGh);return}
-fd.append('repo_url',u);
-var tk=document.getElementById('gt').value.trim();
-if(tk)fd.append('token',tk);
-url='/api/analyze-github';
 }else{
-// Auto-detect: أي حقل فيه بيانات
-var p=document.getElementById('lp').value.trim();
-var u=document.getElementById('gu').value.trim();
-if(files.length>0){activeTab='upload';startAnalysis();return}
-if(p){activeTab='path';startAnalysis();return}
-if(u){activeTab='github';startAnalysis();return}
-showError('املأ أحد الحقول أولاً');
-return;
+var repo=document.getElementById('githubInput').value.trim();
+if(!repo)return alert(t.noRepo);
+formData.append('repo_url',repo);
+var token=document.getElementById('tokenInput').value.trim();
+if(token)formData.append('token',token);
+url='/api/analyze-github';
 }
 
-fd.append('language',lang);
-showProgress();
-var pf=document.getElementById('pf'),pm=document.getElementById('progress-text');
+var btn=document.getElementById('analyzeBtn');
+btn.disabled=true;btn.textContent=t.analyzing;
+
+var progress=document.getElementById('progress');
+var fill=document.getElementById('progressFill');
+var text=document.getElementById('progressText');
+var stats=document.getElementById('stats');
+progress.style.display='block';stats.style.display='none';
+
 var startTime=Date.now();
 
-fetch(url,{method:'POST',body:fd}).then(r=>r.json()).then(function(d){
-if(!d.session_id){showError(d.detail||'Error');return}
-var iv=setInterval(function(){
+fetch(url,{method:'POST',body:formData})
+.then(function(r){return r.json()})
+.then(function(data){
+if(!data.session_id)throw new Error(data.detail||t.error);
+var sid=data.session_id;
+var interval=setInterval(function(){
 var elapsed=Math.floor((Date.now()-startTime)/1000);
-pf.style.width=Math.min(elapsed*2,95)+'%';
-pm.textContent=t.progress+' ('+elapsed+'s)';
-fetch('/api/progress/'+d.session_id).then(r=>r.json()).then(function(p){
-if(p.stage==='done'){clearInterval(iv);pf.style.width='100%';pm.textContent=t.done+' ('+elapsed+'s)';setTimeout(function(){location='/map/'+d.session_id+'?lang='+lang},300)}
-if(p.stage==='error'){clearInterval(iv);showError(p.message||'Error')}
+fill.style.width=Math.min(elapsed*3,90)+'%';
+text.textContent=t.processing+' ('+elapsed+'s)';
+
+fetch('/api/progress/'+sid)
+.then(function(r){return r.json()})
+.then(function(p){
+if(p.stage==='done'){
+clearInterval(interval);
+fill.style.width='100%';
+text.textContent=t.done+' ('+elapsed+'s)';
+btn.disabled=false;btn.textContent=t.analyze;
+
+fetch('/api/session/'+sid)
+.then(function(r){return r.json()})
+.then(function(s){
+if(s.summary){
+var sum=s.summary;
+stats.innerHTML=
+'<h3 style="color:#5b9eff">'+t.stats+'</h3>'+
+'<div class="stat"><span>'+t.files+'</span><span>'+sum.total_files+'</span></div>'+
+'<div class="stat"><span>'+t.lines+'</span><span>'+sum.total_lines+'</span></div>'+
+'<div class="stat"><span>'+t.critical+'</span><span>'+(sum.danger_distribution?sum.danger_distribution.critical||0:0)+'</span></div>'+
+'<div class="stat"><span>'+t.high+'</span><span>'+(sum.danger_distribution?sum.danger_distribution.high||0:0)+'</span></div>'+
+'<div class="stat"><span>'+t.aiStatus+'</span><span>'+(s.ai_analysis?'✅':'❌')+'</span></div>'+
+(s.clone_time?'<div class="stat"><span>'+t.cloneTime+'</span><span>'+s.clone_time+'s</span></div>':'')+
+'<div style="text-align:center;margin-top:12px"><a href="/map/'+sid+'?lang='+lang+'" style="color:#5b9eff;font-size:18px;text-decoration:none;font-weight:bold">'+t.viewMap+'</a></div>';
+stats.style.display='block';
+}
 });
-},500);
-}).catch(function(e){showError(e.message)});
+}else if(p.stage==='error'){
+clearInterval(interval);
+text.textContent='❌ '+(p.message||t.error);
+btn.disabled=false;btn.textContent=t.analyze;
+}
+});
+},1000);
+})
+.catch(function(e){
+text.textContent='❌ '+e.message;
+btn.disabled=false;btn.textContent=t.analyze;
+});
 }
 </script>
-
-
-
-<script>
-(function() {
-  var D = {
-    ar: {
-      subtitle: 'خريطة ذهنية لمشروعك البرمجي',
-      uploadTitle: '📤 رفع الملفات',
-      pathTitle: '📂 مسار محلي',
-      githubTitle: '🐙 GitHub',
-      uz: 'اضغط لاختيار ملفات',
-      analyze: '🚀 تحليل',
-      clear: '🔄 تنظيف',
-      progress: 'جاري التحليل',
-      done: '✅ اكتمل',
-      langBtn: '🇬🇧 English'
-    },
-    en: {
-      subtitle: 'Code Mind Map',
-      uploadTitle: '📤 Upload Files',
-      pathTitle: '📂 Local Path',
-      githubTitle: '🐙 GitHub',
-      uz: 'Click to select files',
-      analyze: '🚀 Analyze',
-      clear: '🔄 Clear',
-      progress: 'Analyzing',
-      done: '✅ Complete',
-      langBtn: '🇸🇦 العربية'
-    }
-  };
-  
-  var lang = (new URLSearchParams(window.location.search)).get('lang') || 'ar';
-  var t = D[lang];
-  
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  
-  function set(id, text) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-  
-  set('subtitle', t.subtitle);
-  set('uploadTitle', t.uploadTitle);
-  set('pathTitle', t.pathTitle);
-  set('githubTitle', t.githubTitle);
-  set('uzText', t.uz);
-  set('analyzeBtn', t.analyze);
-  set('clearBtn', t.clear);
-  
-  var lb = document.getElementById('langBtn');
-  if (lb) {
-    lb.textContent = t.langBtn;
-    lb.href = '?lang=' + (lang === 'ar' ? 'en' : 'ar');
-  }
-})();
-</script>
-
+    <div style="text-align:center;margin-top:20px;padding:16px;border-top:1px solid #2a2a3a;font-size:12px;color:#888">
+        <span style="color:#5b9eff;font-weight:bold">Developer: AssmMssto</span>
+        <div style="margin-top:8px;display:flex;justify-content:center;gap:16px;align-items:center">
+            <a href="https://wa.me/963930322406" target="_blank" style="text-decoration:none;font-size:20px" title="WhatsApp">💬</a>
+            <a href="https://t.me/assmMssto" target="_blank" style="text-decoration:none;font-size:20px" title="Telegram">📨</a>
+            <a href="mailto:assmm944@gmail.com" style="text-decoration:none;font-size:20px" title="Email">📧</a>
+        </div>
+    </div>
 </body>
 </html>

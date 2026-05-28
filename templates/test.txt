@@ -1,0 +1,1 @@
+var sz=80+((n.lines/maxL)*55);

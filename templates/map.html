@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>CGPS Map</title>
-<script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>D-Map</title>
+<script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js">
+function fetchAI(path) {
+  var el = document.getElementById("aiResult");
+  el.style.display = "block";
+  el.textContent = "⏳ " + T.loading;
+  if (!path) return;
+  fetch("/api/ai-analyze/" + SID + "/" + encodeURIComponent(path) + "?lang=ar", {method:"POST"})
+    .then(r => r.json())
+    .then(function(ai) {
+      if (ai.error) { el.textContent = "❌ " + ai.error; return; }
+      var txt = "";
+      if (ai.security && ai.security.length) {
+        txt += "🔒 أمان:\n";
+        ai.security.forEach(function(s) { txt += "  ⚠️ " + s + "\n"; });
+      }
+      if (ai.score) txt += "\n📊 جودة: " + ai.score + "/10\n";
+      if (ai.suggestions && ai.suggestions.length) {
+        txt += "\n💡 توصيات:\n";
+        ai.suggestions.forEach(function(s) { txt += "  • " + s + "\n"; });
+      }
+      if (ai.summary) txt += "\n📝 ملخص: " + ai.summary;
+      el.textContent = txt || JSON.stringify(ai);
+    })
+    .catch(function(e) { el.textContent = "❌ " + e.message; });
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;background:#060610;color:#e0e0e0;overflow:hidden;width:100vw;height:100vh}
 #cy{width:100vw;height:100vh;position:absolute;top:0;left:0;z-index:1}
-.toolbar{
-  position:fixed!important;top:16px;left:16px;z-index:9999!important;
-  background:rgba(12,12,22,.98);border:1px solid #333;border-radius:14px;
-  padding:14px 16px;display:flex;gap:10px;flex-wrap:wrap;
-  box-shadow:0 6px 28px rgba(0,0,0,.8);backdrop-filter:blur(10px);
-}
-.toolbar button,.toolbar a,.toolbar select{
-  background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a52;
-  padding:11px 18px;border-radius:10px;cursor:pointer;
-  font-size:15px;text-decoration:none;white-space:nowrap;
-  font-family:inherit;min-width:44px;font-weight:bold;
-}
+.toolbar{position:fixed!important;top:16px;left:16px;z-index:9999!important;background:rgba(12,12,22,.98);border:1px solid #333;border-radius:14px;padding:14px 16px;display:flex;gap:10px;flex-wrap:wrap;box-shadow:0 6px 28px rgba(0,0,0,.8)}
+.toolbar button,.toolbar a,.toolbar select{background:#1a1a2e;color:#e0e0e0;border:1px solid #3a3a52;padding:11px 18px;border-radius:10px;cursor:pointer;font-size:15px;text-decoration:none;white-space:nowrap;font-family:inherit;min-width:44px;font-weight:bold}
 .toolbar button:hover{background:#2a2a42;border-color:#5b9eff}
-.toolbar .active{background:#1f5fcf!important;border-color:#1f5fcf!important}
-.toolbar select{appearance:none;padding-right:30px;font-size:14px}
-.info-panel{
-  position:fixed!important;top:16px;right:16px;z-index:9999!important;
-  background:rgba(12,12,22,.98);border:2px solid #444;border-radius:16px;
-  padding:24px;width:min(460px,92vw);max-height:82vh;overflow-y:auto;
-  display:none;box-shadow:0 10px 40px rgba(0,0,0,.8);backdrop-filter:blur(10px);
-}
-.info-panel h3{color:#5b9eff;font-size:1.2em;margin-bottom:6px}
+.info-panel{position:fixed!important;top:70px;right:16px;z-index:99999!important;z-index:9999!important;background:rgba(12,12,22,.98);border:2px solid #444;border-radius:16px;padding:24px;width:min(850px,97vw);max-height:92vh;overflow-y:auto;display:none;box-shadow:0 10px 40px rgba(0,0,0,.8)}
+.info-panel h3{color:#5b9eff;font-size:1.2em;margin-bottom:4px}
 .file-path{font-size:11px;color:#888;margin-bottom:8px;word-break:break-all}
 .badge{display:inline-block;padding:5px 14px;border-radius:14px;font-size:12px;font-weight:bold;margin:3px 4px}
-.badge-py{background:#306998;color:#ffd43b}.badge-js{background:#323330;color:#f0db4f}.badge-ts{background:#3178c6;color:#fff}.badge-other{background:#444;color:#ddd}
+.badge-py{background:#306998;color:#ffd43b}.badge-js{background:#323330;color:#f0db4f}.badge-ts{background:#3178c6;color:#fff}.badge-html{background:#e34c26;color:#fff}.badge-css{background:#264de4;color:#fff}.badge-json{background:#666;color:#fff}.badge-java{background:#b07219;color:#fff}.badge-go{background:#00add8;color:#fff}.badge-rust{background:#dea584;color:#000}.badge-cpp{background:#00599c;color:#fff}.badge-md{background:#083fa1;color:#fff}.badge-other{background:#444;color:#ddd}
 .stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a2e;font-size:14px}
 .stat-label{color:#999}.stat-value{font-weight:bold;font-size:15px}
 .danger-badge{display:inline-block;padding:5px 16px;border-radius:5px;font-weight:bold;font-size:14px;text-transform:uppercase}
@@ -39,74 +47,151 @@ body{font-family:system-ui,sans-serif;background:#060610;color:#e0e0e0;overflow:
 .section{margin-top:14px}.section h4{color:#5b9eff;font-size:13px;margin-bottom:6px}
 .dep-list{max-height:110px;overflow-y:auto;font-size:12px;background:#080810;border-radius:8px;padding:10px}
 .dep-list span{display:block;padding:3px 0;color:#bbb;border-bottom:1px solid #111}
-.legend{
-  position:fixed!important;bottom:16px;left:16px;z-index:9999!important;
-  background:rgba(12,12,22,.98);border:1px solid #333;border-radius:14px;
-  padding:14px 18px;font-size:12px;display:flex;gap:18px;flex-wrap:wrap;
-  box-shadow:0 6px 28px rgba(0,0,0,.8);backdrop-filter:blur(10px);
-}
+.ai-box{background:#0a0a14;border:1px solid #5b9eff;border-radius:10px;padding:12px;margin:10px 0}
+.ai-box h4{color:#5b9eff;margin-bottom:6px}
+.ai-score{font-size:24px;font-weight:bold;color:#FFD700}
+.ai-summary{color:#ccc;font-size:13px;line-height:1.5;margin:6px 0}
+.ai-issue{color:#ff6b6b;font-size:12px;padding:4px 0;border-bottom:1px solid #1a1a2e}
+.ai-suggestion{color:#5bff5b;font-size:12px;padding:4px 0;border-bottom:1px solid #1a1a2e}
+.legend{position:fixed!important;bottom:16px;left:16px;z-index:9999!important;background:rgba(12,12,22,.98);border:1px solid #333;border-radius:14px;padding:14px 18px;font-size:12px;display:flex;gap:18px;flex-wrap:wrap;box-shadow:0 6px 28px rgba(0,0,0,.8)}
 .legend-item{display:flex;align-items:center;gap:6px;font-weight:bold}
 .legend-dot{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid rgba(255,255,255,.3)}
 #loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:#5b9eff;z-index:10000;background:rgba(6,6,14,.98);padding:24px 40px;border-radius:14px}
-@media(max-width:1024px){.info-panel{width:min(380px,85vw);max-height:70vh}}
-@media(max-width:768px){.toolbar{top:10px;left:10px;padding:10px;gap:5px}.toolbar button,.toolbar a,.toolbar select{padding:8px 10px;font-size:11px}.info-panel{top:10px;right:10px;padding:12px;width:90vw;max-height:60vh}.legend{bottom:10px;left:10px;padding:8px 10px;gap:8px;font-size:9px}}
-@media(max-width:480px){.toolbar{top:6px;left:6px;padding:6px;gap:3px}.toolbar button,.toolbar a,.toolbar select{padding:6px 8px;font-size:10px;min-width:32px}.info-panel{top:6px;right:6px;padding:10px;width:95vw;max-height:50vh;font-size:11px}.legend{bottom:6px;left:6px;padding:6px 8px;gap:5px;font-size:8px}}
+@media(max-width:768px){
+.toolbar{top:6px;left:6px;padding:8px 6px;gap:4px;border-radius:10px}
+.toolbar button,.toolbar a,.toolbar select{padding:6px 8px;font-size:12px;min-width:30px;border-radius:8px}
+.toolbar select{font-size:10px;padding-right:20px}
+.info-panel{top:60px;right:6px;padding:10px;width:94vw;max-height:50vh;font-size:11px}
+.info-panel h3{font-size:1em}
+.legend{bottom:6px;left:6px;padding:6px 8px;gap:6px;font-size:8px}
+.legend-item{gap:3px}
+.legend-dot{width:10px;height:10px}
+.ai-box{padding:8px}
+.ai-score{font-size:18px}
+}
+@media(max-width:480px){
+.toolbar button,.toolbar a{font-size:10px;padding:5px 6px}
+.info-panel{top:55px;width:96vw;max-height:45vh;padding:8px}
+#loading{font-size:14px;padding:16px 24px}
+}
 </style>
 </head>
 <body>
 
-<div style="position:fixed;bottom:50%;right:50%;transform:translate(50%,50%);opacity:0.03;pointer-events:none;z-index:0">
-  <svg width="300" height="300" viewBox="0 0 400 400">
-    <circle cx="200" cy="170" r="110" fill="none" stroke="#5b9eff" stroke-width="5"/>
-    <polygon points="200,60 182,170 200,170" fill="#5b9eff"/>
-    <polygon points="200,280 218,170 200,170" fill="#5b9eff"/>
-    <circle cx="130" cy="110" r="18" fill="#5b9eff"/>
-    <circle cx="280" cy="95" r="24" fill="#5b9eff"/>
-    <circle cx="290" cy="220" r="14" fill="#5b9eff"/>
-    <circle cx="110" cy="240" r="22" fill="#5b9eff"/>
-    <text x="200" y="345" text-anchor="middle" fill="#5b9eff" font-size="38" font-weight="bold">CGPS</text>
-  </svg>
-</div>
-
-
 <div class="toolbar">
-<button onclick="cy.fit(50)">🔍</button>
+<button onclick="cy.fit(50)" title="تكبير">🔍</button>
 <button onclick="cy.zoom(cy.zoom()*1.4)">➕</button>
 <button onclick="cy.zoom(cy.zoom()*0.6)">➖</button>
-<button id="lb" onclick="tl()">🏷️</button>
+<button id="lb" onclick="toggleLabels()">🏷️</button>
 <button onclick="cy.center()">🎯</button>
-<select onchange="cl(this.value)">
-<option value="cose">🕸️ قوة</option>
-<option value="constellation">🌌 كوكبة</option>
-<option value="concentric">🌐 مركز</option>
+<button id="panelBtn" onclick="togglePanel()" style="background:#1a1a2e">📋</button>
+<select onchange="changeLayout(this.value)">
+
+
+<option value="concentric">🌐</option>
+
+<option value="grid">📋</option>
+
+<option value="breadthfirst">🌳</option>
 </select>
-<a href="/">←</a>
+<a href="/" data-tr="back">← رجوع</a>
+<button onclick="switchLang()" id="langBtn" style="min-width:50px;font-size:18px" title="English">🇸🇦</button>
 </div>
 
 <div class="info-panel" id="ip">
 <h3 id="pt"></h3><div class="file-path" id="pp"></div><div id="pb"></div><div id="ps"></div>
-<div class="section"><h4 id="extTitle"></h4><div class="dep-list" id="ed"></div></div>
-<div class="section"><h4 id="inTitle"></h4><div class="dep-list" id="dby"></div></div>
-<div class="section"><h4 id="outTitle"></h4><div class="dep-list" id="don"></div></div>
+    <span onclick="document.getElementById('ip').style.display='none'" style="position:absolute;top:10px;left:12px;color:#ff8c00;font-size:26px;cursor:pointer;font-weight:bold;z-index:10">✕</span>
+<div class="section"><h4 data-tr="ext-deps">📦 المكتبات الخارجية</h4><div class="dep-list" id="ed"></div></div>
+<div class="section"><h4 data-tr="dep-by">⬆️ يعتمد عليه</h4><div class="dep-list" id="dby"></div></div>
+<div class="section"><h4 data-tr="dep-on">⬇️ يعتمد على</h4><div class="dep-list" id="don"></div></div>
+    <div style="margin-top:10px"><button onclick="fetchAI(currentPath)" id="aiBtn" style="padding:10px 20px;background:#5b9eff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;font-size:14px;display:none">🧠 AI تحليل</button></div>
+    <div id="aiResult" style="margin-top:10px;background:#0a0a14;border-radius:8px;padding:10px;font-size:12px;max-height:200px;overflow-y:auto;display:none"></div>
+<div id="aiSection" style="display:none">
+<div class="ai-box">
+<h4>🧠 <span data-tr="aiAnalysis">تحليل الذكاء الاصطناعي</span></h4>
+<div class="ai-score" id="aiScore"></div>
+<div class="ai-summary" id="aiSummary"></div>
+<div id="aiSecurity"></div>
+<div id="aiSuggestions"></div>
+<div id="aiArchitecture" style="color:#aaa;font-size:12px;margin-top:6px"></div>
+</div>
+</div>
 </div>
 
 <div class="legend" id="legend"></div>
-<div id="loading">⏳ جاري تحميل الخريطة...</div>
+<div id="loading">⏳ <span data-tr="loading">جاري تحميل الخريطة...</span></div>
 <div id="cy"></div>
 
 <script>
-var L = {
-ar:{loading:'⏳ جاري تحميل الخريطة...',lines:'الأسطر',complexity:'التعقيد',functions:'الدوال',classes:'الكلاسات',role:'الدور',externalDeps:'المكتبات الخارجية',dependedBy:'يعتمد عليه',dependsOn:'يعتمد على',noData:'لا يوجد',critical:'حرج',high:'عالي',medium:'متوسط',low:'منخفض',safe:'آمن',isolated:'معزول',god_file:'ملف إلهي',hub:'محوري',bridge:'جسر',leaf:'ورقي',normal:'عادي',python:'Python',javascript:'JavaScript',typescript:'TypeScript',html:'HTML',css:'CSS',json:'JSON',markdown:'Markdown',java:'Java',go:'Go',rust:'Rust',cpp:'C++',text:'نص',unknown:'غير معروف'},
-en:{loading:'⏳ Loading map...',lines:'Lines',complexity:'Complexity',functions:'Functions',classes:'Classes',role:'Role',externalDeps:'External Deps',dependedBy:'Depended By',dependsOn:'Depends On',noData:'None',critical:'Critical',high:'High',medium:'Medium',low:'Low',safe:'Safe',isolated:'Isolated',god_file:'God File',hub:'Hub',bridge:'Bridge',leaf:'Leaf',normal:'Normal',python:'Python',javascript:'JavaScript',typescript:'TypeScript',html:'HTML',css:'CSS',json:'JSON',markdown:'Markdown',java:'Java',go:'Go',rust:'Rust',cpp:'C++',text:'Text',unknown:'Unknown'}
+// ============ الترجمة ============
+var translations = {
+ar: {
+loading:'جاري تحميل الخريطة...',lines:'الأسطر',complexity:'التعقيد',functions:'الدوال',classes:'الكلاسات',role:'الدور',
+extDeps:'📦 المكتبات الخارجية',depBy:'⬆️ يعتمد عليه',depOn:'⬇️ يعتمد على',
+noData:'لا يوجد',critical:'حرج',high:'عالي',medium:'متوسط',low:'منخفض',safe:'آمن',isolated:'معزول',
+godFile:'ملف إلهي',hub:'محوري',bridge:'جسر',leaf:'ورقي',normal:'عادي',
+python:'Python',javascript:'JavaScript',typescript:'TypeScript',html:'HTML',css:'CSS',json:'JSON',
+markdown:'Markdown',java:'Java',go:'Go',rust:'Rust',cpp:'C++',text:'نص',unknown:'غير معروف',
+aiAnalysis:'تحليل الذكاء الاصطناعي',securityTitle:'⚠️ ثغرات',suggestionsTitle:'💡 اقتراحات',
+back:'← رجوع','layout-force':'قوة','layout-constellation':'كوكبة','layout-concentric':'مركز'
+},
+en: {
+loading:'Loading map...',lines:'Lines',complexity:'Complexity',functions:'Functions',classes:'Classes',role:'Role',
+extDeps:'📦 External Dependencies',depBy:'⬆️ Depended By',depOn:'⬇️ Depends On',
+noData:'None',critical:'Critical',high:'High',medium:'Medium',low:'Low',safe:'Safe',isolated:'Isolated',
+godFile:'God File',hub:'Hub',bridge:'Bridge',leaf:'Leaf',normal:'Normal',
+python:'Python',javascript:'JavaScript',typescript:'TypeScript',html:'HTML',css:'CSS',json:'JSON',
+markdown:'Markdown',java:'Java',go:'Go',rust:'Rust',cpp:'C++',text:'Text',unknown:'Unknown',
+aiAnalysis:'AI Analysis',securityTitle:'⚠️ Security Issues',suggestionsTitle:'💡 Suggestions',
+back:'← Back','layout-force':'Force','layout-constellation':'Constellation','layout-concentric':'Concentric'
+}
 };
+
 var lang=(new URLSearchParams(window.location.search)).get('lang')||'ar';
-var T=L[lang];
+var T=translations[lang];
 document.documentElement.lang=lang;
 document.documentElement.dir=lang==='ar'?'rtl':'ltr';
-document.getElementById('loading').textContent=T.loading;
-document.getElementById('extTitle').textContent='📦 '+T.externalDeps;
-document.getElementById('inTitle').textContent='⬆️ '+T.dependedBy;
-document.getElementById('outTitle').textContent='⬇️ '+T.dependsOn;
+
+function switchLang(){
+var newLang=lang==='ar'?'en':'ar';
+window.location='?lang='+newLang;
+}
+// تحديث أيقونة اللغة
+var langBtn=document.getElementById('langBtn');
+if(langBtn){langBtn.textContent=lang==='ar'?'🇸🇦':'🇬🇧';langBtn.title=lang==='ar'?'English':'العربية';}
+
+function tr(key){return T[key]||key}
+function updateTranslations(){
+document.querySelectorAll('[data-tr]').forEach(function(el){
+var key=el.getAttribute('data-tr');
+if(T[key])el.textContent=T[key];
+});
+// تحديث عناوين الـ select
+var sel=document.querySelector('select');
+if(sel){sel.options[0].text='🕸️ '+T['layout-force'];sel.options[1].text='🌌 '+T['layout-constellation'];sel.options[2].text='🌐 '+T['layout-concentric'];}
+// تحديث رابط الرجوع
+var back=document.querySelector('a[href="/"]');
+if(back)back.textContent=T.back;
+// تحديث الأسطورة
+updateLegend();
+}
+
+updateTranslations();
+    document.getElementById("aiBtn").style.display = lang=="ar" ? "inline-block" : "none";
+
+// تحديث عناوين الأزرار
+document.querySelector('a[href="/"]').textContent=T.back;
+document.querySelector('select').options[0].text='🕸️ '+T['layout-force'];
+document.querySelector('select').options[1].text='🌌 '+T['layout-constellation'];
+document.querySelector('select').options[2].text='🌐 '+T['layout-concentric'];
+
+// ============ الألوان والأيقونات ============
+var dc={critical:'#8B0000',high:'#DC143C',medium:'#FF8C00',low:'#FFD700',safe:'#228B22',unknown:'#808080'};
+var langBadges={python:'badge-py',javascript:'badge-js',typescript:'badge-ts',html:'badge-html',css:'badge-css',json:'badge-json',java:'badge-java',go:'badge-go',rust:'badge-rust',cpp:'badge-cpp',markdown:'badge-md'};
+var langIcons={python:'🐍',javascript:'💛',typescript:'💙',html:'🟠',css:'🎨',json:'📋',markdown:'📝',java:'☕',go:'🔵',rust:'🦀',cpp:'⚙️',text:'📄',unknown:'📄'};
+
+// ============ الأسطورة ============
+function updateLegend(){
 document.getElementById('legend').innerHTML=
 '<div class="legend-item"><span class="legend-dot" style="background:#8B0000"></span>'+T.critical+'</div>'+
 '<div class="legend-item"><span class="legend-dot" style="background:#DC143C"></span>'+T.high+'</div>'+
@@ -114,18 +199,24 @@ document.getElementById('legend').innerHTML=
 '<div class="legend-item"><span class="legend-dot" style="background:#FFD700"></span>'+T.low+'</div>'+
 '<div class="legend-item"><span class="legend-dot" style="background:#228B22"></span>'+T.safe+'</div>'+
 '<div class="legend-item"><span class="legend-dot" style="background:#808080"></span>'+T.isolated+'</div>';
+}
+updateLegend();
 
-var sl=false,SID='__SID__';
-var dc={'critical':'#8B0000','high':'#DC143C','medium':'#FF8C00','low':'#FFD700','safe':'#228B22','unknown':'#808080'};
+document.getElementById('loading').innerHTML='⏳ '+T.loading;
+
+// ============ Cytoscape ============
+var SID='__SID__',showLabels=false,cy;
 
 fetch('/api/session/'+SID).then(r=>r.json()).then(function(d){
 document.getElementById('loading').style.display='none';
-var el=[],ml=1;
-d.graph.nodes.forEach(function(n){if(n.lines>ml)ml=n.lines});
+var el=[],maxL=1;
+d.graph.nodes.forEach(function(n){if(n.lines>maxL)maxL=n.lines});
+
+var aiData=d.ai_analysis||{};
+
 d.graph.nodes.forEach(function(n){
-var sz=30+((n.lines/ml)*55);
-var color=dc[n.danger_level]||'#808080';
-var icon=n.icon||'📄';
+var sz=150+((n.lines/maxL)*80);
+var icon=langIcons[n.language]||'📄';
 el.push({data:{
 id:n.id,label:icon+' '+n.name,name:n.name,path:n.id,
 language:n.language,lines:n.lines,complexity:n.complexity,
@@ -134,52 +225,323 @@ danger_level:n.danger_level,danger_score:n.danger_score,
 role:n.role,external_deps:n.external_deps||[],
 depended_by:n.depended_by||[],depends_on:n.depends_on||[],
 is_isolated:n.is_isolated,is_bridge:n.is_bridge,
-color:color,size:sz
+color:dc[n.danger_level]||'#808080',size:sz,
+ai:aiData[n.id]||null
 }})});
+
 d.graph.edges.forEach(function(e){el.push({data:{id:e.from+'_'+e.to,source:e.from,target:e.to}})});
 
-var cy=cytoscape({
+cy=cytoscape({
 container:document.getElementById('cy'),elements:el,
 style:[
-{selector:'node',css:{'label':'','font-size':'10px','color':'#fff','text-valign':'bottom','text-halign':'center','background-color':'data(color)','width':'data(size)','height':'data(size)','border-width':2,'border-color':'rgba(255,255,255,0.2)','text-background-color':'#000','text-background-opacity':0.75,'text-background-shape':'round-rectangle','text-background-padding':'3px'}},
-{selector:'edge',css:{width:2,'line-color':'#4a4a5a','curve-style':'bezier',opacity:0.5}},
+{selector:'node',css:{'label':'','font-size':'35px','color':'#fff','text-valign':'bottom','text-halign':'center','background-color':'data(color)','width':'data(size)','height':'data(size)','border-width':2,'border-color':'rgba(255,255,255,0.2)','text-background-color':'#000','text-background-opacity':0.75,'text-background-shape':'round-rectangle','text-background-padding':'3px'}},
+{selector:'edge',css:{width:2.2,'line-color':'#4a4a5a','curve-style':'bezier',opacity:1}},
 {selector:':selected',css:{'border-color':'#5b9eff','border-width':4}}
 ],
-layout:{name:'cose',animate:true,animationDuration:300,nodeRepulsion:25000,idealEdgeLength:180,gravity:0.2,numIter:5000},
-zoomingEnabled:true,userZoomingEnabled:true,panningEnabled:true,userPanningEnabled:true,
-wheelSensitivity:0.3
+layout:{name:'concentric',animate:false,concentric:function(node){return node.data('danger_score')||0},minNodeSpacing:80,padding:30},
+zoomingEnabled:true,userZoomingEnabled:true,panningEnabled:true,userPanningEnabled:true,wheelSensitivity:0.3
 });
 
 cy.on('layoutstop',function(){cy.fit(50)});
 
+// دعم الموبايل - tap و click
+var selectedNode = null;
+var highlightedEdges = [];
+
+cy.on('tap', 'node', function(e){
+  var node = e.target;
+  
+  // إذا نقر على نفس العقدة - إلغاء التحديد
+  if (selectedNode && selectedNode.id() === node.id()) {
+    selectedNode.style({
+      'border-color': 'rgba(255,255,255,0.2)',
+      'border-width': 2,
+      'label': ''
+    });
+    // إرجاع العقد المرتبطة
+    highlightedEdges.forEach(function(edge) {
+      edge.style({
+        'line-color': '#4a4a5a',
+        'width': 2,
+        'opacity': 0.9
+      });
+    });
+    cy.nodes().not(node).style({
+      'opacity': 1,
+      'width': function(ele) { return ele.data('size') || 30; },
+      'height': function(ele) { return ele.data('size') || 30; }
+    });
+    cy.edges().style({
+      'line-color': '#4a4a5a',
+      'width': 2,
+      'opacity': 0.9
+    });
+    selectedNode = null;
+    highlightedEdges = [];
+    return;
+  }
+  
+  // إلغاء تحديد السابق
+  if (selectedNode) {
+    selectedNode.style({
+      'border-color': 'rgba(255,255,255,0.2)',
+      'border-width': 2,
+      'label': ''
+    });
+    highlightedEdges.forEach(function(edge) {
+      edge.style({
+        'line-color': '#4a4a5a',
+        'width': 2,
+        'opacity': 0.9
+      });
+    });
+    cy.nodes().not(node).style({
+      'opacity': 1,
+      'width': function(ele) { return ele.data('size') || 30; },
+      'height': function(ele) { return ele.data('size') || 30; }
+    });
+  }
+  
+  selectedNode = node;
+  
+  // تظليل كل العقد الأخرى
+  cy.nodes().not(node).style({
+    'opacity': 0.1
+  });
+  
+  // العقدة المحددة
+  node.style({
+    'border-color': '#FF8C00',
+    'border-width': 5,
+    'label': node.data('label'),
+    'font-size': '80px',
+    'color': '#FFD700',
+    'text-outline-color': '#000',
+    'text-outline-width': 4
+  });
+  
+  // العقد المرتبطة
+  var connectedNodes = node.neighborhood().nodes();
+  highlightedEdges = node.connectedEdges();
+  
+  connectedNodes.style({
+    'border-color': '#5b9eff',
+    'border-width': 4,
+    'opacity': 1,
+    'label': function(ele){ return ele.data('label'); },
+    'font-size': '80px',
+    'color': '#fff',
+    'text-outline-color': '#000',
+    'text-outline-width': 3,
+    'width': function(ele) { return (ele.data('size') || 30) * 1.1; },
+    'height': function(ele) { return (ele.data('size') || 30) * 1.1; }
+  });
+  
+  // الخطوط الواصلة
+  highlightedEdges.style({
+    'line-color': '#ddd',
+    'width': 4,
+    'opacity': 1
+  });
+  
+  // إخفاء كل الخطوط الأخرى
+  cy.edges().not(highlightedEdges).style({
+    'opacity': 0,
+    'width': 0
+  });
+  
+  // باقي الكود الأصلي
+
+var n=e.target.data();currentPath=n.id;
+showNodeInfo(n);
+});
+
+cy.on('tap', function(e){
+if(e.target===cy)document.getElementById('ip').style.display='none';
+});
+
+function showNodeInfo(n){
+    var aiRes=document.getElementById("aiResult"); if(aiRes) aiRes.style.display="none";
+var langName=T[n.language]||n.language;
+var dangerName=T[n.danger_level]||n.danger_level;
+var roleName=T[n.role]||n.role;
+var icon=langIcons[n.language]||'??';
+
+document.getElementById('pt').textContent='['+icon+'] '+n.name;
+document.getElementById('pp').textContent='📁 '+n.path;
+document.getElementById('pb').innerHTML=
+'<span class="badge '+(langBadges[n.language]||'badge-other')+'">'+langName+'</span>'+
+'<span class="danger-badge danger-'+n.danger_level+'">'+dangerName+' ('+n.danger_score+')</span>';
+
+document.getElementById('ps').innerHTML=
+'<div class="stat-row"><span class="stat-label">📏 '+T.lines+'</span><span class="stat-value">'+n.lines+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">🧮 '+T.complexity+'</span><span class="stat-value">'+n.complexity+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">⚙️ '+T.functions+'</span><span class="stat-value">'+n.functions+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">📦 '+T.classes+'</span><span class="stat-value">'+n.classes+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">🎭 '+T.role+'</span><span class="stat-value">'+roleName+'</span></div>';
+
+// تحديث العناوين
+var sections=document.querySelectorAll('#ip .section h4');
+if(sections[0])sections[0].textContent=T.extDeps;
+if(sections[1])sections[1].textContent=T.depBy;
+if(sections[2])sections[2].textContent=T.depOn;
+
+document.getElementById('ed').innerHTML=n.external_deps.length?n.external_deps.map(function(x){return'<span>📌 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
+document.getElementById('dby').innerHTML=n.depended_by.length?n.depended_by.map(function(x){return'<span>📄 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
+document.getElementById('don').innerHTML=n.depends_on.length?n.depends_on.map(function(x){return'<span>📄 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
+
+// AI
+var ai=n.ai;
+    if(lang=="en") ai=null;
+if(ai&&ai.summary){
+aiSection.style.display='block';
+document.getElementById('aiScore').textContent='⭐ '+ai.score+'/10';
+document.getElementById('aiSummary').textContent=ai.summary;
+
+var secHTML='';
+if(ai.security&&ai.security.length){
+secHTML='<h4 style="color:#ff6b6b;margin-top:8px">'+T.securityTitle+'</h4>';
+ai.security.forEach(function(s){secHTML+='<div class="ai-issue">🔴 '+s+'</div>'});
+}
+document.getElementById('aiSecurity').innerHTML=secHTML;
+
+var sugHTML='';
+if(ai.suggestions&&ai.suggestions.length){
+sugHTML='<h4 style="color:#5bff5b;margin-top:8px">'+T.suggestionsTitle+'</h4>';
+}
+document.getElementById('aiSuggestions').innerHTML=sugHTML;
+document.getElementById('aiArchitecture').textContent=ai.architecture?'🏗️ '+ai.architecture:'';
+}else{
+aiSection.style.display='none';
+}
+
+if(showPanel)document.getElementById('ip').style.display='block';
+}
+
 cy.on('tap','node',function(e){
+var n=e.target.data();currentPath=n.id;
+showNodeInfo(n);
+})
+
+cy.on('tap', 'node', function(e){
 var n=e.target.data();
 var langName=T[n.language]||n.language;
 var dangerName=T[n.danger_level]||n.danger_level;
 var roleName=T[n.role]||n.role;
-document.getElementById('pt').textContent=n.label;
+var langBadge=langBadges[n.language]||'badge-other';
+var icon=langIcons[n.language]||'📄';
+
+document.getElementById('pt').textContent=icon+' '+n.name;
 document.getElementById('pp').textContent='📁 '+n.path;
-document.getElementById('pb').innerHTML='<span class="badge '+(n.language==='python'?'badge-py':n.language==='javascript'?'badge-js':n.language==='typescript'?'badge-ts':'badge-other')+'">'+langName+'</span><span class="danger-badge danger-'+n.danger_level+'">'+dangerName+' ('+n.danger_score+')</span>';
-document.getElementById('ps').innerHTML='<div class="stat-row"><span class="stat-label">📏 '+T.lines+'</span><span class="stat-value">'+n.lines+'</span></div><div class="stat-row"><span class="stat-label">🧮 '+T.complexity+'</span><span class="stat-value">'+n.complexity+'</span></div><div class="stat-row"><span class="stat-label">⚙️ '+T.functions+'</span><span class="stat-value">'+n.functions+'</span></div><div class="stat-row"><span class="stat-label">📦 '+T.classes+'</span><span class="stat-value">'+n.classes+'</span></div><div class="stat-row"><span class="stat-label">🎭 '+T.role+'</span><span class="stat-value">'+roleName+'</span></div>';
+document.getElementById('pb').innerHTML=
+'<span class="badge '+langBadge+'">'+langName+'</span>'+
+'<span class="danger-badge danger-'+n.danger_level+'">'+dangerName+' ('+n.danger_score+')</span>';
+
+// تحديث العناوين في panel
+document.querySelector('#ip .section:nth-child(2) h4').textContent=T.extDeps;
+document.querySelector('#ip .section:nth-child(3) h4').textContent=T.depBy;
+document.querySelector('#ip .section:nth-child(4) h4').textContent=T.depOn;
+var aiTitle=document.querySelector('#aiSection h4 span');
+if(aiTitle)aiTitle.textContent=T.aiAnalysis;
+
+document.getElementById('ps').innerHTML=
+'<div class="stat-row"><span class="stat-label">📏 '+T.lines+'</span><span class="stat-value">'+n.lines+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">🧮 '+T.complexity+'</span><span class="stat-value">'+n.complexity+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">⚙️ '+T.functions+'</span><span class="stat-value">'+n.functions+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">📦 '+T.classes+'</span><span class="stat-value">'+n.classes+'</span></div>'+
+'<div class="stat-row"><span class="stat-label">🎭 '+T.role+'</span><span class="stat-value">'+roleName+'</span></div>';
+
 document.getElementById('ed').innerHTML=n.external_deps.length?n.external_deps.map(function(x){return'<span>📌 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
 document.getElementById('dby').innerHTML=n.depended_by.length?n.depended_by.map(function(x){return'<span>📄 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
 document.getElementById('don').innerHTML=n.depends_on.length?n.depends_on.map(function(x){return'<span>📄 '+x+'</span>'}).join(''):'<span style="color:#555">'+T.noData+'</span>';
-document.getElementById('ip').style.display='block';
+
+// AI
+var ai=n.ai;
+    if(lang=="en") ai=null;
+var aiSection=document.getElementById('aiSection');
+if(ai&&ai.summary){
+aiSection.style.display='block';
+document.getElementById('aiScore').textContent='⭐ '+ai.score+'/10';
+document.getElementById('aiSummary').textContent=ai.summary;
+
+var secHTML='';
+if(ai.security&&ai.security.length){
+secHTML='<h4 style="color:#ff6b6b;margin-top:8px">'+T.securityTitle+'</h4>';
+ai.security.forEach(function(s){secHTML+='<div class="ai-issue">🔴 '+s+'</div>'});
+}
+document.getElementById('aiSecurity').innerHTML=secHTML;
+
+var sugHTML='';
+if(ai.suggestions&&ai.suggestions.length){
+sugHTML='<h4 style="color:#5bff5b;margin-top:8px">'+T.suggestionsTitle+'</h4>';
+ai.suggestions.forEach(function(s){sugHTML+='<div class="ai-suggestion">✅ '+s+'</div>'});
+}
+document.getElementById('aiSuggestions').innerHTML=sugHTML;
+document.getElementById('aiArchitecture').textContent=ai.architecture?'🏗️ '+ai.architecture:'';
+}else{
+aiSection.style.display='none';
+}
+
+if(showPanel)document.getElementById('ip').style.display='block';
 });
-cy.on('tap',function(e){if(e.target===cy)document.getElementById('ip').style.display='none'});
-window.cy=cy;
+
+cy.on('tap',function(e){
+if(e.target===cy){
+document.getElementById('ip').style.display='none';
+if(selectedNode){
+selectedNode.style({'border-color':'rgba(255,255,255,0.2)','border-width':2});
+selectedNode=null;
+}
+cy.nodes().style({'opacity':1,'width':function(ele){return ele.data('size')||30;},'height':function(ele){return ele.data('size')||30;},'border-color':'rgba(255,255,255,0.2)','border-width':2,'label':'','font-size':'35px'});
+cy.edges().style({'line-color':'#4a4a5a','width':2.2,'opacity':1});
+highlightedEdges=[];
+}
+});
+
 }).catch(function(e){document.getElementById('loading').textContent='❌ '+e.message});
 
-function tl(){sl=!sl;var b=document.getElementById('lb');if(sl){b.classList.add('active');cy.nodes().forEach(function(n){n.style('label',n.data('label'))})}else{b.classList.remove('active');cy.nodes().forEach(function(n){n.style('label','')})}}
+var showPanel=true;
+function togglePanel(){showPanel=!showPanel;var b=document.getElementById("panelBtn");b.style.background=showPanel?"#1a1a2e":"#8B0000";if(!showPanel)document.getElementById("ip").style.display="none"}
 
-function cl(name){
+function toggleLabels(){showLabels=!showLabels;var b=document.getElementById('lb');if(showLabels){b.style.background='#1f5fcf';cy.nodes().forEach(function(n){n.style('label',n.data('label'))})}else{b.style.background='#1a1a2e';cy.nodes().forEach(function(n){n.style('label','')})}}
+
+function changeLayout(name){
 var layouts={
-'cose':{name:'cose',animate:true,animationDuration:300,nodeRepulsion:25000,idealEdgeLength:180,gravity:0.2,numIter:3000},
-'constellation':{name:'cose',animate:true,animationDuration:400,nodeRepulsion:40000,idealEdgeLength:250,gravity:0.05,numIter:4000},
-'concentric':{name:'concentric',animate:true,animationDuration:300,concentric:function(node){return node.data('danger_score')||50},minNodeSpacing:60}
+
+
+'concentric':{name:'concentric',animate:false,animationDuration:300,concentric:function(node){return node.data('danger_score')||0},minNodeSpacing:80,padding:30},
+
+'grid':{name:'grid',animate:false,padding:30,spacingFactor:2.5,position:function(node){var danger=node.data('danger_level')||'safe';var order={'critical':0,'high':1,'medium':2,'low':3,'safe':4,'unknown':5,'isolated':5};var level=order[danger]||5;var sameLevel=cy.nodes().filter(function(n){return (n.data('danger_level')||'safe')===danger;}).sort(function(a,b){return (b.data('danger_score')||0)-(a.data('danger_score')||0);});var idx=sameLevel.indexOf(node);return {row:level*3+Math.floor(idx/10),col:idx%10};}},
+
+'breadthfirst':{name:'breadthfirst',directed:false,animate:false,padding:40,spacingFactor:1.5}
 };
 cy.layout(layouts[name]||layouts['cose']).run();
-setTimeout(function(){cy.fit(50)},500);
+cy.one("layoutstop",function(){cy.fit(50)});
+}
+
+function fetchAI(path) {
+  var el = document.getElementById("aiResult");
+  el.style.display = "block";
+  el.textContent = "⏳ " + T.loading;
+  if (!path) return;
+  fetch("/api/ai-analyze/" + SID + "/" + encodeURIComponent(path) + "?lang=ar", {method:"POST"})
+    .then(r => r.json())
+    .then(function(ai) {
+      if (ai.error) { el.textContent = "❌ " + ai.error; return; }
+      var txt = "";
+      if (ai.security && ai.security.length) {
+        txt += "🔒 أمان:\n";
+        ai.security.forEach(function(s) { txt += "  ⚠️ " + s + "\n"; });
+      }
+      if (ai.score) txt += "\n📊 جودة: " + ai.score + "/10\n";
+      if (ai.suggestions && ai.suggestions.length) {
+        txt += "\n💡 توصيات:\n";
+        ai.suggestions.forEach(function(s) { txt += "  • " + s + "\n"; });
+      }
+      if (ai.summary) txt += "\n📝 ملخص: " + ai.summary;
+      el.textContent = txt || JSON.stringify(ai);
+    })
+    .catch(function(e) { el.textContent = "❌ " + e.message; });
 }
 </script>
 </body>
